@@ -1,3 +1,84 @@
+# Lab 5 Edge-Cloud Offloading — Quick Setup
+
+This quick setup outlines five steps to get your Flask server and ESP32 sketch running.
+
+---
+
+### 1. Clone Repository
+
+```bash
+git clone https://github.com/SyHilichurl/515lab5b/git
+```
+
+Contains:
+
+* `trainer_scripts/` (deployment scripts)
+* `gesture/` (data) 
+* `app/` (Flask server)
+* `wand/` (ESP32 sketch)
+
+---
+
+### 2. Train & Deploy Model on Azure
+
+1. Upload your dataset to Azure ML Blob via the Data tab.
+2. Run `trainer_scripts/train.ipynb` to produce `wand_model.h5`.
+3. Open and execute `model_register.ipynb`:
+
+   * Provide subscription ID, resource group, and workspace name.
+   * Register the model and create an online endpoint with a deployment.
+4. Copy the endpoint URL and primary key from the **Consume** tab.
+
+---
+
+### 3. Start Local Flask Server (for Testing)
+
+```bash
+cd app
+python -m venv .venv
+source .venv/bin/activate      # Windows: .\.venv\Scripts\activate
+pip install flask numpy arduinojson
+python app.py
+```
+
+* The server listens on `0.0.0.0:5000`.
+* Test via `http://<PC_IP>:5000/predict`.
+
+---
+
+### 4. Configure & Upload ESP32 Sketch
+
+1. Open `wand/wand.ino` in Arduino IDE.
+2. Install Arduino libraries:
+
+   * Adafruit MPU6050
+   * ArduinoJson
+   * Copy `liz99-project-1_inferencing` into your Arduino libraries folder.
+3. Update Wi-Fi and server settings at the top of the sketch:
+
+```cpp
+const char* ssid      = "<YOUR_WIFI_SSID>";
+const char* password  = "<YOUR_WIFI_PASSWORD>";
+const char* serverUrl = "http://<PC_IP>:5000/predict";  // or Azure endpoint URL
+#define CONFIDENCE_THRESHOLD 80.0
+```
+
+4. Compile and upload. Open Serial Monitor at 115200 baud.
+
+---
+
+### 5. Test & Cleanup
+
+* **Press** the pushbutton: observe `Local -> ...` or `Low confidence -> ...` plus server response in Serial Monitor.
+* **Stop** the Flask server (`Ctrl+C`).
+* **Disconnect** the ESP32.
+
+![screenshot](img/1.png)
+Failed at the last step
+![screenshot](img/2.png)
+
+
+
 ## Discussion
 
 ### 1. Server vs. Wand Confidence
